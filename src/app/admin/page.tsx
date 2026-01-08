@@ -7,7 +7,16 @@ interface Contact {
   name: string
   phone: string
   message: string
+  status: '대기중' | '연락완료' | '상담완료'
   created_at: string
+}
+
+const STATUS_OPTIONS = ['대기중', '연락완료', '상담완료'] as const
+
+const STATUS_COLORS = {
+  '대기중': 'bg-yellow-100 text-yellow-800',
+  '연락완료': 'bg-blue-100 text-blue-800',
+  '상담완료': 'bg-green-100 text-green-800',
 }
 
 export default function AdminPage() {
@@ -23,7 +32,10 @@ export default function AdminPage() {
       const response = await fetch('/api/contact')
       if (response.ok) {
         const data = await response.json()
-        setContacts(data)
+        setContacts(data.map((c: Contact) => ({
+          ...c,
+          status: c.status || '대기중'
+        })))
       }
     } catch (error) {
       console.error('Failed to fetch contacts:', error)
@@ -59,6 +71,50 @@ export default function AdminPage() {
       }
     } catch {
       setAuthError('네트워크 오류가 발생했습니다.')
+    }
+  }
+
+  const handleStatusChange = async (id: number, newStatus: string) => {
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, status: newStatus }),
+      })
+
+      if (response.ok) {
+        setContacts(contacts.map(c =>
+          c.id === id ? { ...c, status: newStatus as Contact['status'] } : c
+        ))
+      } else {
+        alert('상태 업데이트에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Status update error:', error)
+      alert('상태 업데이트 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`'${name}' 문의를 삭제하시겠습니까?`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/contact?id=${id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setContacts(contacts.filter(c => c.id !== id))
+      } else {
+        alert('삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      alert('삭제 중 오류가 발생했습니다.')
     }
   }
 
@@ -169,6 +225,12 @@ export default function AdminPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       상담 문의
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      상태
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      관리
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -190,6 +252,27 @@ export default function AdminPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 max-w-md">
                         {contact.message || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select
+                          value={contact.status}
+                          onChange={(e) => handleStatusChange(contact.id, e.target.value)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer border-0 ${STATUS_COLORS[contact.status]}`}
+                        >
+                          {STATUS_OPTIONS.map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleDelete(contact.id, contact.name)}
+                          className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        >
+                          삭제
+                        </button>
                       </td>
                     </tr>
                   ))}

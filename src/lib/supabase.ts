@@ -10,5 +10,6 @@ export interface Contact {
   name: string
   phone: string
   message: string
+  status?: '대기중' | '연락완료' | '상담완료'
   created_at?: string
 }
