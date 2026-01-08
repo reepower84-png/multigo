@@ -397,7 +397,11 @@ export default function Home() {
       <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">멀티고</h2>
+            <img
+              src="/멀티고 로고 단독버젼 v1.png"
+              alt="멀티고"
+              className="h-12 mx-auto mb-2 brightness-0 invert"
+            />
             <p className="text-sm">무점포 창업의 새로운 시작</p>
           </div>
           <div className="border-t border-gray-800 pt-8">
