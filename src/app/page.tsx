@@ -58,7 +58,7 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <img
-            src="/멀티고 로고 단독버젼 v1.png"
+            src="/멀티고_로고_단독버젼_v1-removebg-preview.png"
             alt="멀티고"
             onClick={scrollToTop}
             className="h-10 cursor-pointer hover:opacity-80 transition-opacity"
@@ -398,7 +398,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8">
             <img
-              src="/멀티고 로고 단독버젼 v1.png"
+              src="/멀티고_로고_단독버젼_v1-removebg-preview.png"
               alt="멀티고"
               className="h-12 mx-auto mb-2 brightness-0 invert"
             />
