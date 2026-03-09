@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase, Contact } from '@/lib/supabase'
 
-async function sendDiscordNotification(contact: Contact) {
+interface ContactForm {
+  name: string
+  phone: string
+  message: string
+}
+
+async function sendDiscordNotification(contact: ContactForm) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL
 
   if (!webhookUrl) {
-    console.error('Discord webhook URL not configured')
-    return
+    throw new Error('Discord webhook URL not configured')
   }
 
   const embed = {
@@ -42,18 +46,18 @@ async function sendDiscordNotification(contact: Contact) {
     timestamp: new Date().toISOString(),
   }
 
-  try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        embeds: [embed],
-      }),
-    })
-  } catch (error) {
-    console.error('Failed to send Discord notification:', error)
+  const response = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      embeds: [embed],
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Discord webhook failed: ${response.status}`)
   }
 }
 
@@ -69,26 +73,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const contact: Contact = {
+    const contact: ContactForm = {
       name,
       phone,
       message: message || '',
     }
 
-    // Supabase에 저장
-    const { error } = await supabase
-      .from('contacts')
-      .insert([contact])
-
-    if (error) {
-      console.error('Supabase insert error:', error)
-      return NextResponse.json(
-        { error: '데이터 저장에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    // Discord 알림 전송
+    // Discord 알림 직접 전송
     await sendDiscordNotification(contact)
 
     return NextResponse.json({ success: true, message: '문의가 접수되었습니다.' })
@@ -101,97 +92,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  try {
-    const { data, error } = await supabase
-      .from('contacts')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Supabase select error:', error)
-      return NextResponse.json(
-        { error: '데이터를 불러오는데 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json(data)
-  } catch (error) {
-    console.error('Get contacts error:', error)
-    return NextResponse.json(
-      { error: '데이터를 불러오는데 실패했습니다.' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function PATCH(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { id, status } = body
-
-    if (!id || !status) {
-      return NextResponse.json(
-        { error: 'ID와 상태는 필수입니다.' },
-        { status: 400 }
-      )
-    }
-
-    const { error } = await supabase
-      .from('contacts')
-      .update({ status })
-      .eq('id', id)
-
-    if (error) {
-      console.error('Supabase update error:', error)
-      return NextResponse.json(
-        { error: '상태 업데이트에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Update status error:', error)
-    return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const id = searchParams.get('id')
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'ID는 필수입니다.' },
-        { status: 400 }
-      )
-    }
-
-    const { error } = await supabase
-      .from('contacts')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error('Supabase delete error:', error)
-      return NextResponse.json(
-        { error: '삭제에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Delete contact error:', error)
-    return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
-      { status: 500 }
-    )
-  }
-}
