@@ -386,6 +386,14 @@ export default function Home() {
             >
               {isSubmitting ? '전송 중...' : '상담 신청하기'}
             </button>
+            <a
+              href="http://pf.kakao.com/_pxgQxbC/chat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 w-full bg-[#FEE500] text-[#191919] font-bold py-4 px-8 rounded-lg shadow-lg hover:bg-[#FDD800] transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+            >
+              카카오톡으로 상담하기
+            </a>
             <p className="text-center text-sm text-gray-500 mt-4">
               개인정보는 상담 목적으로만 사용됩니다
             </p>
