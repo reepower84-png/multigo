@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { backupFetch } from "../../../lib/inquiry-backup";
 
 interface ContactForm {
   name: string
@@ -46,7 +47,7 @@ async function sendDiscordNotification(contact: ContactForm) {
     timestamp: new Date().toISOString(),
   }
 
-  const response = await fetch(webhookUrl, {
+  const response = await backupFetch(webhookUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
